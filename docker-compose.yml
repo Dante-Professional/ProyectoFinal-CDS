@@ -1,0 +1,98 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.2.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:6.2.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9092:9092"
+
+  database:
+    build:
+      context: ./DataBase
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_DATABASE: notibolt
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - type: bind
+        source: C:\Proyecto\DataBase\Data
+        target: /var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  producer:
+    build:
+      context: ./Producer
+    container_name: producer
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER_URL: kafka:9092
+    restart: always
+
+  consumer:
+    build:
+      context: ./Consumer
+    container_name: consumer
+    depends_on:
+      - kafka
+      - database
+    restart: always
+
+  dao:
+    build:
+      context: ./DAO
+    container_name: dao
+    depends_on:
+      - database
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: notibolt
+    volumes:
+      - ./DAO/data:/var/lib/
+    restart: always
+    ports:
+      - "5001:5001"
+
+  bll:
+    build:
+      context: ./BLL
+    container_name: bll
+    depends_on:
+      - dao
+    ports:
+      - "5002:5002"
+    restart: always
+  
+  ui:
+    build:
+      context: ./UI
+    container_name: ui
+    depends_on:
+      - bll
+    ports:
+      - "80:80"
+    restart: always

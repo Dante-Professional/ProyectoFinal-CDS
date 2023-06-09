@@ -1,0 +1,198 @@
+/* FUENTES */
+@import url('https://fonts.googleapis.com/css2?family=Newsreader&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  font-family: open;
+  font-family: 'Newsreader', serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+header{
+  background-color: #188dcf;
+  height: 10%;
+  display: flex;
+  align-items: center;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px, rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset;
+  white-space: nowrap;
+}
+
+/* Logo */
+header img{
+  padding-left: 1.5vw;
+  height: 3vw;
+}
+
+/* Contenedor enlaces */
+header div{
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Botón InicioSesion/Registro */
+header .boton-principal{
+  color: white;
+  padding-left: 1.5vw;
+  padding-right: 1.5vw;
+  padding-top: 0.5vw;
+  padding-bottom: 0.5vw;
+  font-size: 1vw;
+  background-color: transparent;
+  margin-right: 3vw;
+  border: 1px solid white;
+  border-radius: 0.3vw;
+}
+
+header .boton-principal:hover{
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+  border: 2px solid white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+header #boton-buscar {
+  background-color: transparent;
+  border-color: white;
+  color: white;
+  margin-right: 90px;
+  margin-left: 10px;
+}
+
+header #boton-buscar:hover {
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+header #input-buscar {
+  color: #188dcf;
+  width: 20vw;
+  border: none;
+}
+
+header #contenedor_enlaces {
+  display: flex;
+  justify-content: space-evenly;
+  font-size: 1.3vw;
+}
+
+header #contenedor_enlaces a{
+  color: white;
+  margin-left: 80px;
+}
+
+header #contenedor_enlaces a:hover{
+  font-weight: bold;
+}
+
+.contenedor_titulo_web {
+  padding: 2vw;
+}
+
+.contenedor_titulo_web h1{
+  margin: 0;
+  font-size: 2vw;
+}
+
+.contenedor_titulo_web h1 span{
+  font-size: 1.5vw;
+}
+
+.contenedor_noticias {
+  height: 70vh;
+  background-color: whitesmoke;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.cuadro_noticia{
+  padding-left: 1vw;
+  padding-right: 1vw;
+  border: 2px solid grey;
+  border-radius: 1.5vw;
+  width: 22vw;
+  height: 45vh;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  overflow: auto;
+
+  /* EFECTO */
+  --c: #1095c1; /* the color */
+  --b: .1em;    /* border length*/
+  --d: 20px;    /* the cube depth */
+  
+  --_s: calc(var(--d) + var(--b));
+  
+  border: solid #0000;
+  border-width: var(--b) var(--b) var(--_s) var(--_s);
+  background:
+    conic-gradient(at left var(--d)  bottom var(--d),
+      #0000 90deg, rgb(255 255 255 /0.3) 0 225deg,rgb(255 255 255 /0.6) 0) border-box,
+    conic-gradient(at left var(--_s) bottom var(--_s),
+      #0000 90deg,var(--c) 0) 0 100%/calc(100% - var(--b)) calc(100% - var(--b))  border-box;
+  background-color: white;
+  transform: translate(calc(var(--d)/-1),var(--d));
+  clip-path: 
+    polygon(
+    var(--d) 0%, 
+    var(--d) 0%, 
+    100% 0%, 
+    100% calc(100% - var(--d)),
+    100% calc(100% - var(--d)),
+    var(--d) calc(100% - var(--d))
+    );
+  transition: 0.5s;
+}
+
+.cuadro_noticia:hover {
+  transform: translate(0,0);
+  clip-path: 
+    polygon(
+    0% var(--d), 
+    var(--d) 0%, 
+    100% 0%, 
+    100% calc(100% - var(--d)), 
+    calc(100% - var(--d)) 100%, 
+    0% 100%
+  );
+  cursor: pointer;
+}
+
+.contenedor_titulo{
+  width: 100%;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  color: #188dcf;
+  text-transform: uppercase;
+}
+
+.contenedor_autorfecha{
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.contenedor_contenido{
+  width: 100%;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+#contenedor_noticias_filtradas a:hover {
+  font-weight: bold;
+}
+
+#contenedor_noticias_filtradas a:visited,  #contenedor_noticias_filtradas a:active{
+  color: #19c37d;
+}

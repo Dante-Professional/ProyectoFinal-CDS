@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOTIBOLT</title>
+  <link rel="shortcut icon" href="./Recursos/Imagenes/Favicon.ico" type="image/x-icon">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <!-- FUENTES -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+  <!-- ESTILOS GENERALES-->
+  <link rel="stylesheet" href="./Estilos/popup.css">
+  <link rel="stylesheet" href="./Estilos/index.css">
+  <!-- ESTILOS ALERTAS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+  <!-- CONTROL SESIONES ($localStorage)-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-local-storage/0.5.2/angular-local-storage.min.js"></script>
+</head>
+<body ng-app="noticiasApp" ng-controller="noticiasCtrl">
+  <header>
+    <img src="./Recursos/Imagenes/Logo-SinFondo.png" alt="Logo-NotiBolt">
+    <div ng-if="usuarioLogueado">
+      <div id="contenedor_enlaces">
+        <a href="#titulo_ultimas_noticias">Últimas noticias</a>
+        <a href="#titulo_noticias_filtradas">Noticias filtradas</a>
+        <div id="contenedor-buscador">
+          <input type="text" ng-model="busqueda" placeholder="Buscar por autor..." id="input-buscar">
+          <button type="button" ng-click="realizarBusqueda()" id="boton-buscar">Buscar</button>
+        </div>
+      </div>
+      <button type="button" ng-click="cerrarSesion()" class="boton-principal">Cerrar sesión</button>
+    </div>
+    <div ng-if="!usuarioLogueado">
+      <button type="submit" onclick="openPopup('login')" class="boton-principal">Iniciar sesión / Registrarse</button>
+    </div>
+  </header>
+
+  <!-- Popup -->
+  <div id="popup-login">
+    <div id="subcontenedor-popup">
+      <div>
+        <div id="contenedor-cierre">
+          <span onclick="closePopup('login')">X</span>
+        </div>
+        <div class="container" id="container">
+          <div class="form-container sign-up-container">
+            <form ng-submit="formularioRegistro()"> <!-- Le añadimos la función de nuestro controlador AngularJS que debe ejecutar al realizar el submit-->
+              <h1>Crear Cuenta</h1>
+              <input type="text" placeholder="Nombre" required ng-model="nombre"/> <!-- Utilizamos ng-model para que se vincule en $scope -->
+              <input type="email" placeholder="Correo" required ng-model="correo"/>
+              <input type="password" placeholder="Contraseña" required ng-model="contrasegna"/>
+              <button type="submit">Registrarse</button>
+            </form>
+          </div>
+          <div class="form-container">
+            <form ng-submit="formularioLogin()">
+              <h1>Iniciar Sesión</h1>
+              <input type="email" required  placeholder="Correo" ng-model="correo"/>
+              <input type="password" required  placeholder="Contraseña" ng-model="contrasegna"/>
+              <button type="submit">Entrar</button>
+            </form>
+          </div>
+          <div class="overlay-container">
+            <div class="overlay">
+              <div class="overlay-panel overlay-left">
+                <h1>¡Hola de nuevo!</h1>
+                <p>Mantente conectado y no vuelvas a perderte ninguna noticia.</p>
+                <button class="ghost" id="signIn">Iniciar Sesión</button>
+              </div>
+              <div class="overlay-panel overlay-right">
+                <h1>¡Bienvenido!</h1>
+                <p>Introduce tu información personal y comienza a enterarte de las últimas noticias.</p>
+                <button class="ghost" id="signUp">Registrarse</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div class="contenedor_titulo_web">
+      <h1 id="titulo_ultimas_noticias">
+        <span class="material-symbols-outlined">arrow_forward_ios</span>
+        Últimas noticias
+      </h1>
+    </div>
+    <div class="contenedor_noticias">
+      <div class="cuadro_noticia" ng-repeat="noticia in noticias">
+        <a href="{{ noticia.url }}" target="_blank">
+          <div class="contenedor_titulo">
+            <h2>{{ noticia.titulo }}</h2>
+          </div>
+          <div class="contenedor_autorfecha">
+            <span><b>Autor: </b><i>{{ noticia.autor }}</i></span>
+            <br>
+            <span><b>Fecha: </b><i>{{ noticia.fecha_noticia }}</i></span>
+          </div>
+          <div class="contenedor_contenido">
+            <p>{{ noticia.contenido }}</p>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div>
+      <div class="contenedor_titulo_web">
+        <h1 id="titulo_noticias_filtradas">
+          <span class="material-symbols-outlined">arrow_forward_ios</span>
+          Noticias filtradas
+        </h1>
+      </div>
+      <div id="contenedor_noticias_filtradas">
+        <ul>
+          <li ng-repeat="noticia in noticiasFiltradas">
+            <a href="{{ noticia.url }}" target="_blank">{{ noticia.titulo }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // SCRIPTS DATOS DINÁMICOS
+    angular.module('noticiasApp', ['LocalStorageModule']) // Creamos un nuevo módulo de AngularJS "noticiasApp", [] para dependencias adicionales
+      .controller('noticiasCtrl', function($scope, $http, localStorageService) { // Definimos un controlador "noticiasCtrl" dentro del módulo "noticiasApp"
+        // ULTIMAS NOTICIAS
+        $http.get('http://localhost:5002/obtenerNoticias')
+          .then(function(response) { // Se ejecuta cuando la solicitud HTTP se completa con éxito, la respuesta se accede desde 'response'
+            $scope.noticias = response.data; // $scope es un objeto especial en AngularJS que permite la comunicación entre el controlador y la vista
+          });
+        
+        // REGISTRO
+        $scope.formularioRegistro = function() {
+          var formData = {
+            nombre: $scope.nombre,
+            correo: $scope.correo,
+            contrasegna: $scope.contrasegna
+          };
+
+          $http({
+            method: 'POST',
+            url: 'http://localhost:5002/registrarUsuario',
+            data: formData,
+            headers: { 'Content-Type': 'application/json' }
+          }).then(function(response) {
+            if (response.data.mensaje === 'El correo introducido ya existe') {
+              Swal.fire({
+                icon: 'error',
+                title: 'El correo introducido ya existe',
+                confirmButtonText: 'Aceptar'
+              })
+            } else {
+              Swal.fire({
+                icon: 'success',
+                title: 'Registro completado',
+                showConfirmButton: false,
+                timer: 1800
+              }).then(function() {
+                window.location.href = './index.html';
+              })
+            }
+          });
+        };
+
+        // CAMBIO HTML SI ESTA LOGEADO
+        $scope.usuarioLogueado = localStorageService.get('usuarioLogueado') || false;
+
+        // LOGIN
+        $scope.formularioLogin = function() {
+          var formData = {
+            correo: $scope.correo,
+            contrasegna: $scope.contrasegna
+          };
+
+          $http({
+            method: 'POST',
+            url: 'http://localhost:5002/iniciarUsuario',
+            data: formData,
+            headers: { 'Content-Type': 'application/json' }
+          }).then(function(response) {
+            if (response.data.mensaje === 'Sesión iniciada') {
+              localStorageService.set('usuarioLogueado', true);
+              Swal.fire({
+                icon: 'success',
+                title: 'Sesión iniciada',
+                showConfirmButton: false,
+                timer: 1800
+              }).then(function() {
+                window.location.href = './index.html';
+              })
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Datos introducidos incorrectos',
+                confirmButtonText: 'Aceptar'
+              })
+            }
+          });
+        };
+
+        // CERRAR SESIÓN
+        $scope.cerrarSesion = function() {
+          localStorageService.set('usuarioLogueado', false);
+          Swal.fire({
+            icon: 'success',
+            title: 'Sesión cerrada',
+            showConfirmButton: false,
+            timer: 1800
+          }).then(function() {
+            window.location.href = './index.html';
+          })
+        };
+
+        // BUSCADOR
+        $scope.realizarBusqueda = function() {
+          $scope.busqueda = document.getElementById('input-buscar').value;
+          if ($scope.busqueda != '') {
+            var formData = {
+              busqueda:  $scope.busqueda.trim()
+            };
+
+            $http({
+              method: 'POST',
+              url: 'http://localhost:5002/busqueda',
+              data: formData,
+              headers: { 'Content-Type': 'application/json' }
+            }).then(function(response) {
+              var noticiasFiltradas = response.data; // Obtener las noticias filtradas del servidor
+              $scope.noticiasFiltradas = noticiasFiltradas; // Asignamos las noticias filtradas a una variable $scope para mostrarlas
+            });
+          }
+        };
+      });
+
+    // SCRIPTS APARICIÓN POPUP
+    function openPopup(popupId) {
+      var popup = document.getElementById("popup-" + popupId);
+      popup.style.display = "block";
+    }
+    
+    function closePopup(popupId) {
+      var popup = document.getElementById("popup-" + popupId);
+      popup.style.display = "none";
+    }
+
+    // SCRIPTS VENTANA POPUP
+    const signUpButton = document.getElementById('signUp');
+    const signInButton = document.getElementById('signIn');
+    const container = document.getElementById('container');
+
+    signUpButton.addEventListener('click', () => {
+      container.classList.add("right-panel-active");
+    });
+
+    signInButton.addEventListener('click', () => {
+      container.classList.remove("right-panel-active");
+    });
+  </script>
+</body>
+</html>
